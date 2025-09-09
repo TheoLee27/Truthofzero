@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>제로의 진실</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #F9FAFB;
+        }
+        .tab-active {
+            border-bottom: 3px solid #1D4ED8;
+            color: #1E2B3B;
+            font-weight: 700;
+        }
+        .tab-inactive {
+            color: #64748B;
+            border-bottom: 3px solid transparent;
+        }
+        .star-rating span {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .filter-active {
+            background-color: #DBEAFE;
+            border-color: #60A5FA;
+            color: #1E40AF;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <div class="container mx-auto max-w-7xl p-4 md:p-6">
+        
+        <!-- 헤더 -->
+        <header id="main-header" class="flex justify-between items-center my-6">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 bg-blue-700 rounded-lg"></div>
+                <h1 class="text-2xl font-bold text-slate-800">제로의 진실</h1>
+            </div>
+            <!-- 로그인 상태 표시 영역 -->
+            <div id="auth-container" class="flex items-center space-x-3">
+                <!-- JavaScript로 내용이 채워집니다. -->
+            </div>
+        </header>
+
+        <!-- 목록 페이지 전체 컨테이너 -->
+        <div id="list-page-container">
+            <!-- 검색 및 탭 메뉴 등 -->
+            <div class="sticky top-0 bg-gray-50 py-4 z-10">
+                <div class="border-b border-gray-200 mb-4">
+                    <nav class="flex -mb-px space-x-6" id="tab-container">
+                        <button class="py-3 px-1 text-base font-medium tab-active" data-tab="foods">제로/로우 식품</button>
+                        <button class="py-3 px-1 text-base font-medium tab-inactive" data-tab="sweeteners">대체당</button>
+                    </nav>
+                </div>
+                <div class="relative mb-4">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="search-input" placeholder="제로/로우 식품 이름으로 검색" class="w-full p-3 pl-10 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+                <div id="foods-filter-container" class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                     <span class="font-medium text-sm text-gray-800">구분</span>
+                    <button id="category-filter-btn" data-filter-type="category" class="filter-btn flex items-center space-x-1 px-3 py-1.5 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"><span>종류</span><svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
+                    <button id="sweetener-filter-btn" data-filter-type="sweetener" class="filter-btn flex items-center space-x-1 px-3 py-1.5 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"><span>대체당</span><svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
+                    <div class="h-4 border-l border-gray-300"></div>
+                    <span class="font-medium text-sm text-gray-800">정렬</span>
+                    <button data-sort-by="pricePer100" class="sort-btn flex items-center space-x-1 px-3 py-1.5 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"><span>100ml/g 가격</span></button>
+                    <button data-sort-by="calories" class="sort-btn flex items-center space-x-1 px-3 py-1.5 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"><span>열량</span></button>
+                    <button data-sort-by="sugar" class="sort-btn flex items-center space-x-1 px-3 py-1.5 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"><span>당류</span></button>
+                    <button data-sort-by="carbs" class="sort-btn flex items-center space-x-1 px-3 py-1.5 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"><span>탄수화물</span></button>
+                    <button id="reset-filters-btn" class="ml-auto text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors">초기화</button>
+                </div>
+            </div>
+            <main id="content-container" class="mt-6">
+                <div id="foods-content"><div id="foods-card-container" class="flex flex-col space-y-4"></div></div>
+                <div id="sweeteners-content" class="hidden"><div id="sweeteners-card-container" class="bg-white rounded-xl shadow-sm p-4 flex flex-col space-y-2"></div></div>
+            </main>
+        </div>
+
+        <!-- 식품 상세 페이지 컨테이너 -->
+        <div id="food-detail-page-container" class="hidden"></div>
+        
+        <!-- 대체당 상세 페이지 컨테이너 -->
+        <div id="sweetener-detail-page-container" class="hidden"></div>
+
+    </div>
+    
+    <!-- 필터 모달 (팝업창) -->
+    <div id="filter-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-xs mx-4">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 id="modal-title" class="text-lg font-bold"></h3>
+                <button id="close-modal-btn" class="p-2 rounded-full hover:bg-gray-100">
+                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div id="modal-options-container" class="p-2 max-h-60 overflow-y-auto">
+                <!-- 옵션 버튼들이 여기에 동적으로 추가됩니다. -->
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Firebase SDK 추가 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        let app, auth, db;
+        let foodsData = [];
+        let sweetenersData = [];
+
+        // --- 공유받은 실제 데이터 (예비용) ---
+        const sampleFoods = [
+            // 음료
+            {"id":"food01","category":"음료","brand":"펩시","name":"펩시 콜라 제로슈가 라임향","imageUrl":"https://placehold.co/400x400/E2E8F0/4A5568?text=Pepsi","sweeteners":["아스파탐","아세설팜칼륨","수크랄로스"],"priceSource":"쿠팡","priceLastUpdated":"2025.08.12","price":707,"pricePer100":199,"totalVolume":355,"calories":0,"sodium":61,"carbs":0,"sugar":0,"fat":0,"transFat":0,"satFat":0,"cholesterol":0,"protein":0,"reviews":[]},
+            {"id":"food02","category":"음료","brand":"나랑드","name":"나랑드사이다 제로","imageUrl":"https://placehold.co/400x400/E2E8F0/4A5568?text=Narangd","sweeteners":["수크랄로스","아세설팜칼륨"],"priceSource":"쿠팡","priceLastUpdated":"2025.08.13","price":483,"pricePer100":197,"totalVolume":245,"calories":0,"sodium":0,"carbs":0,"sugar":0,"fat":0,"transFat":0,"satFat":0,"cholesterol":0,"protein":0,"reviews":[]},
+            // 영양음료
+            {"id":"food03","category":"영양음료","brand":"링티","name":"링티 제로 복숭아","imageUrl":"https://placehold.co/400x400/E2E8F0/4A5568?text=Lingtea","sweeteners":["에리스리톨","수크랄로스"],"priceSource":"쿠팡","priceLastUpdated":"2025.08.13","price":1021,"pricePer100":204,"totalVolume":500,"calories":0,"sodium":180,"carbs":9,"sugar":0,"fat":0,"transFat":0,"satFat":0,"cholesterol":0,"protein":0,"reviews":[]},
+            {"id":"food04","category":"영양음료","brand":"티제로","name":"티제로 아이스티 복숭아","imageUrl":"https://placehold.co/400x400/E2E8F0/4A5568?text=T-zero","sweeteners":["에리스리톨","수크랄로스","아세설팜칼륨"],"priceSource":"쿠팡","priceLastUpdated":"2025.08.13","price":745,"pricePer100":149,"totalVolume":500,"calories":0,"sodium":180,"carbs":9,"sugar":0,"fat":0,"transFat":0,"satFat":0,"cholesterol":0,"protein":0,"reviews":[]},
+            // 아이스크림
+            {"id":"food05","category":"아이스크림","brand":"빙그레","name":"더위사냥 제로 디카페인 커피","imageUrl":"https://placehold.co/400x400/E2E8F0/4A5568?text=Binggrae","sweeteners":["말티톨","에리스리톨","아세설팜칼륨"],"priceSource":"쿠팡","priceLastUpdated":"2025.08.13","price":1000,"pricePer100":714,"totalVolume":140,"calories":85,"sodium":55,"carbs":22,"sugar":0,"fat":0,"transFat":0,"satFat":0,"cholesterol":5,"protein":2.5,"reviews":[]},
+            {"id":"food06","category":"아이스크림","brand":"라라스윗","name":"라라스윗 저당 생우유 파인트","imageUrl":"https://placehold.co/400x400/E2E8F0/4A5568?text=Lalasweet","sweeteners":["에리스리톨","스테비아","알룰로스"],"priceSource":"쿠팡","priceLastUpdated":"2025.08.13","price":8900,"pricePer100":1894,"totalVolume":474,"calories":330,"sodium":240,"carbs":65,"sugar":9,"fat":15,"transFat":0,"satFat":9,"cholesterol":90,"protein":13,"reviews":[]},
+            // 베이커리
+            {"id":"food07","category":"베이커리","brand":"리하베스트","name":"제로슈가 통밀식빵","imageUrl":"https://placehold.co/400x400/E2E8F0/4A5568?text=Reharvest","sweeteners":["에리스리톨","스테비아","알룰로스"],"priceSource":"쿠팡","priceLastUpdated":"2025.08.28","price":9500,"pricePer100":1727,"totalVolume":550,"calories":1342,"sodium":2156,"carbs":236.5,"sugar":5.5,"fat":33,"transFat":0,"satFat":7.7,"cholesterol":0,"protein":49.5,"reviews":[]},
+            {"id":"food08","category":"베이커리","brand":"무설탕연구소","name":"저당 미니쌀약과","imageUrl":"https://placehold.co/400x400/E2E8F0/4A5568?text=NoSugarLab","sweeteners":["알룰로스","말티톨"],"priceSource":"쿠팡","priceLastUpdated":"2025.08.28","price":11900,"pricePer100":4760,"totalVolume":250,"calories":950,"sodium":150,"carbs":165,"sugar":0,"fat":30,"transFat":5,"satFat":15,"cholesterol":0,"protein":5,"reviews":[]},
+            // 디저트/과자
+            {"id":"food09","category":"디저트/과자","brand":"롯데제로","name":"카카오 케이크 12p","imageUrl":"https://placehold.co/400x400/E2E8F0/4A5568?text=Lotte","sweeteners":["D-말티톨","수크랄로스","아세설팜칼륨"],"priceSource":"쿠팡","priceLastUpdated":"2025.08.28","price":4290,"pricePer100":2500,"totalVolume":171.6,"calories":756,"sodium":660,"carbs":84,"sugar":0,"fat":49.2,"transFat":0,"satFat":25.2,"cholesterol":60,"protein":12,"reviews":[]},
+            {"id":"food10","category":"디저트/과자","brand":"마이노멀","name":"방탄쿠키","imageUrl":"https://placehold.co/400x400/E2E8F0/4A5568?text=Mynormal","sweeteners":["알룰로스","에리스리톨","나한과"],"priceSource":"쿠팡","priceLastUpdated":"2025.08.28","price":2900,"pricePer100":7250,"totalVolume":40,"calories":197,"sodium":115,"carbs":17,"sugar":0.3,"fat":14,"transFat":0,"satFat":4.2,"cholesterol":15,"protein":5,"reviews":[]}
+        ];
+        const sampleSweeteners = [
+            {"id":"sw01","name":"네오탐","gi":0,"priceRange":"저렴","negative_effects":"아스파탐 유도체라 민감 소비자층에서 우려 존재","issues":"동물실험 기준 안정성 확보, 인체 부작용 보고는 적음","expert_opinion":"WHO, FDA 모두 안전성 인정. 시장 내 이슈는 크지 않음"},
+            {"id":"sw02","name":"말티톨","gi":35,"priceRange":"저렴","negative_effects":"대량 섭취 시 소화불량, 설사, 가스 발생","issues":"\"과다섭취 시 설사 유발 가능\" 문구가 의무 표기","expert_opinion":"소화기 부작용 보고가 많아, 소비자들 사이에서 자주 지적됨"},
+            {"id":"sw03","name":"사카린","gi":0,"priceRange":"저렴","negative_effects":"1970년대 동물실험에서 방광암 가능성 논란 → 현재는 무해 판정","issues":"\"옛날에 발암 이슈가 있었다\"는 소비자 인식이 여전히 존재","expert_opinion":"FDA, EFSA, WHO 모두 안전 인정. 하지만 소비자 거부감이 비교적 있음"},
+            {"id":"sw04","name":"소비톨","gi":9,"priceRange":"저렴","negative_effects":"말티톨과 유사하게 설사, 복부팽만, 소화 불량 유발","issues":"잇몸·치아 건강에는 긍정적이지만 GI 문제가 잦음","expert_opinion":"안전성에는 문제 없음. 다만 \"과민성 대장증후군\" 환자들이 불편 호소"},
+            {"id":"sw05","name":"수크랄로스","gi":0,"priceRange":"고가","negative_effects":"장내 미생물 균형에 영향 가능성 보고 있음","issues":"고온에서 분해 → 소량의 염화화합물(염소계 부산물) 생성 논란","expert_opinion":"EFSA/FDA 승인, 인체 영향은 불확실하나 \"소비자 관심\"이 높은 논란"},
+            {"id":"sw06","name":"스테비아","gi":0,"priceRange":"고가","negative_effects":"고농도 섭취 시 쓴맛이 느껴질 수 있음. 일부 사용자는 복통 호소","issues":"\"스테비아\"로 표기하지만 실제로는 \"스테비올배당체\"임.","expert_opinion":"천연 감미료로 인식되어 선호도가 높음. 안전성 문제 없음"},
+            {"id":"sw07","name":"아스파탐","gi":0,"priceRange":"보통","negative_effects":"두통, 알레르기, 페닐케톤뇨증(PKU) 환자 섭취 금지","issues":"WHO 산하 국제암연구소(IARC)에서 2023년 '발암 가능 물질(Group 2B)'로 분류","expert_opinion":"식약처 및 전문가들은 현재 일일섭취허용량(ADI) 내에서 섭취하는 것은 안전하다는 입장"}
+        ];
+
+
+        // --- 페이지 상태 관리 ---
+        const pageHistory = []; 
+        let currentFood = null; // 현재 보고 있는 상세 페이지의 음식 데이터
+        const listPageContainer = document.getElementById('list-page-container');
+        const foodDetailPageContainer = document.getElementById('food-detail-page-container');
+        const sweetenerDetailPageContainer = document.getElementById('sweetener-detail-page-container');
+
+        function navigateBack() {
+            if (pageHistory.length <= 1) return; 
+            const currentPage = pageHistory.pop();
+            document.getElementById(currentPage.id).classList.add('hidden');
+            const previousPage = pageHistory[pageHistory.length - 1];
+            document.getElementById(previousPage.id).classList.remove('hidden');
+            if (previousPage.id === 'list-page-container') {
+                document.getElementById('main-header').classList.remove('hidden');
+                currentFood = null;
+            }
+        }
+
+        function showListPage() {
+            pageHistory.length = 0; 
+            pageHistory.push({ id: 'list-page-container' });
+            foodDetailPageContainer.classList.add('hidden');
+            sweetenerDetailPageContainer.classList.add('hidden');
+            listPageContainer.classList.remove('hidden');
+            document.getElementById('main-header').classList.remove('hidden');
+            currentFood = null;
+        }
+
+        function showFoodDetailPage(foodId) {
+            currentFood = foodsData.find(f => f.id === foodId);
+            if (!currentFood) return;
+            pageHistory.push({ id: 'food-detail-page-container', data: foodId });
+            listPageContainer.classList.add('hidden');
+            sweetenerDetailPageContainer.classList.add('hidden');
+            document.getElementById('main-header').classList.add('hidden');
+            renderFoodDetailPage(currentFood);
+            foodDetailPageContainer.classList.remove('hidden');
+        }
+
+        function showSweetenerDetailPage(sweetenerId) {
+            const sweetener = sweetenersData.find(s => s.id === sweetenerId);
+            if (!sweetener) return;
+            pageHistory.push({ id: 'sweetener-detail-page-container', data: sweetenerId });
+            listPageContainer.classList.add('hidden');
+            foodDetailPageContainer.classList.add('hidden');
+            document.getElementById('main-header').classList.add('hidden');
+            renderSweetenerDetailPage(sweetener);
+            sweetenerDetailPageContainer.classList.remove('hidden');
+        }
+
+        // --- 데이터 처리 및 계산 함수 ---
+        function calculateAverages(category) {
+            const categoryFoods = foodsData.filter(f => f.category === category);
+            if (categoryFoods.length === 0) return {};
+            const nutrients = ['calories', 'sodium', 'carbs', 'sugar', 'protein', 'fat', 'transFat', 'satFat', 'cholesterol'];
+            const totals = nutrients.reduce((acc, curr) => ({ ...acc, [curr]: 0 }), {});
+            categoryFoods.forEach(food => {
+                nutrients.forEach(nutrient => {
+                    const valuePer100 = (food[nutrient] / food.totalVolume) * 100;
+                    totals[nutrient] += valuePer100;
+                });
+            });
+            const averages = {};
+            nutrients.forEach(nutrient => { averages[nutrient] = totals[nutrient] / categoryFoods.length; });
+            return averages;
+        }
+
+        function getComparisonArrow(value, average) {
+            if (average === 0 && value > 0) return `<span class="text-red-500 text-xs ml-1">▲</span>`;
+            if (value > average * 1.05) return `<span class="text-red-500 text-xs ml-1">▲</span>`;
+            if (value < average * 0.95) return `<span class="text-blue-500 text-xs ml-1">▼</span>`;
+            return '';
+        }
+        
+        function generateStars(rating, color = 'text-yellow-400') {
+            let starsHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                starsHTML += `<span class="${i <= rating ? color : 'text-gray-300'}">${i <= rating ? '★' : '☆'}</span>`;
+            }
+            return starsHTML;
+        }
+
+        // --- 데이터 렌더링 함수 ---
+        
+        function renderFoodCards(foods) {
+            const container = document.getElementById('foods-card-container');
+            container.innerHTML = '';
+            if (foods.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-500 py-10">표시할 제품이 없습니다.</p>`;
+                return;
+            }
+            foods.forEach(food => {
+                const isSolid = ['베이커리', '디저트/과자'].includes(food.category);
+                const unit = isSolid ? 'g' : 'ml';
+
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer p-4 flex space-x-4 items-start";
+                card.dataset.id = food.id;
+                card.innerHTML = `
+                    <img src="${food.imageUrl}" alt="${food.name}" class="w-24 h-24 md:w-28 md:h-28 flex-shrink-0 bg-gray-200 rounded-lg object-cover">
+                    <div class="flex-grow flex flex-col justify-between h-full">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-xs font-bold bg-gray-200 text-gray-700 px-2 py-0.5 rounded">${food.category}</span>
+                                <h3 class="text-base md:text-lg font-bold text-gray-800 truncate">${food.name}</h3>
+                            </div>
+                            <p class="text-sm text-gray-600 truncate">
+                                <span>열량: ${food.calories}kcal</span><span class="mx-1">·</span><span>당류: ${food.sugar}g</span><span class="mx-1">·</span><span>탄수화물: ${food.carbs}g</span><span class="mx-1">·</span><span>단백질: ${food.protein}g</span>
+                            </p>
+                        </div>
+                        <div class="flex justify-between items-end mt-2">
+                            <div></div>
+                            <div class="text-right">
+                                <span class="font-bold text-gray-800 text-base md:text-lg">${Math.round(food.price).toLocaleString()}원</span>
+                                <span class="text-xs text-gray-500 ml-1">(100${unit}당 ${Math.round(food.pricePer100).toLocaleString()}원)</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderSweetenerCards(sweeteners) {
+            const container = document.getElementById('sweeteners-card-container');
+            container.innerHTML = '';
+            if (sweeteners.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-500 py-10">표시할 대체당이 없습니다.</p>`;
+                return;
+            }
+            sweeteners.forEach(sweetener => {
+                 const card = document.createElement('div');
+                 card.className = "py-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 last:border-b-0";
+                 card.dataset.id = sweetener.id;
+                 card.innerHTML = `
+                    <p class="text-base text-gray-800">
+                        <span class="font-bold">${sweetener.name}</span><span class="mx-2 text-gray-300">·</span><span class="text-gray-600">${sweetener.priceRange}</span><span class="mx-2 text-gray-300">·</span><span class="text-gray-600">${sweetener.gi} (GI)</span>
+                    </p>
+                 `;
+                 container.appendChild(card);
+            });
+        }
+
+        function renderFoodDetailPage(food) {
+            const container = document.getElementById('food-detail-page-container');
+            const averages = calculateAverages(food.category);
+            const totalReviews = food.reviews.length;
+            const averageRating = totalReviews > 0 ? (food.reviews.reduce((acc, r) => acc + r.rating, 0) / totalReviews).toFixed(1) : "N/A";
+            const averageRatingStarsHTML = generateStars(averageRating);
+            
+            const isSolid = ['베이커리', '디저트/과자'].includes(food.category);
+            const unit = isSolid ? 'g' : 'ml';
+            
+            const sweetenersHTML = food.sweeteners.map(sweetenerName => {
+                const sweetenerData = sweetenersData.find(s => s.name === sweetenerName);
+                if (!sweetenerData) return '';
+                return `
+                    <div class="flex justify-between items-center py-3 border-b border-gray-100 last:border-b-0">
+                        <button data-sweetener-id="${sweetenerData.id}" class="sweetener-link bg-blue-100 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full hover:bg-blue-200 transition-colors">${sweetenerName}</button>
+                        <span class="text-sm text-gray-600">GI ${sweetenerData.gi} · ${sweetenerData.priceRange}</span>
+                    </div>
+                `;
+            }).join('');
+            
+            const reviewsHTML = food.reviews.map(r => `
+                <div class="py-4 border-b border-gray-100 last:border-b-0">
+                    <div class="flex items-center mb-1">
+                        <span class="font-bold text-sm">${r.user}</span><span class="text-xs text-gray-400 ml-2">${r.date}</span>
+                        <div class="flex items-center ml-auto text-yellow-400">${generateStars(r.rating)}</div>
+                        <span class="font-bold text-sm ml-2">${r.rating.toFixed(1)}</span>
+                    </div>
+                    <p class="text-gray-600 text-sm">${r.text}</p>
+                </div>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="bg-white rounded-xl shadow-lg p-4 sm:p-8">
+                    <div class="flex items-center mb-6">
+                        <button class="back-btn p-2 rounded-full hover:bg-gray-100"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+                        <h2 class="text-xl font-bold ml-4">제로/로우 식품 상세 정보</h2>
+                    </div>
+                    <div class="flex flex-col md:flex-row gap-8 mb-8">
+                        <img src="${food.imageUrl}" alt="${food.name}" class="w-full md:w-1/3 h-auto object-cover rounded-lg">
+                        <div class="flex-grow">
+                            <span class="text-sm font-bold bg-gray-200 text-gray-700 px-2 py-0.5 rounded">${food.category}</span>
+                            <h1 class="text-3xl font-bold my-2">${food.name}</h1>
+                            <p class="text-3xl font-bold text-blue-600">${food.price.toLocaleString()}원 <span class="text-lg text-gray-500 font-medium">(100${unit}당 ${food.pricePer100.toLocaleString()}원)</span></p>
+                            <p class="text-xs text-gray-500 mt-1">${food.priceLastUpdated} · ${food.priceSource}</p>
+                        </div>
+                    </div>
+                    <div class="mb-8">
+                        <h3 class="text-lg font-bold mb-2">대체당 <span class="text-sm text-gray-500 font-normal">(함량 높은 순)</span></h3><div id="sweetener-links-container">${sweetenersHTML}</div>
+                    </div>
+                    <div class="mb-8">
+                        <div class="flex justify-between items-center mb-2">
+                           <h3 class="text-lg font-bold">영양정보 <span class="text-sm text-gray-500 font-normal">(총 내용량 ${food.totalVolume}${unit} 기준)</span></h3>
+                           <span class="text-xs text-gray-500">(유사 식품 평균 대비 ▲▼)</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-center">
+                            <div class="bg-gray-50 p-3 rounded-lg"><div class="text-sm text-gray-600">열량</div><div class="font-bold text-lg">${food.calories} kcal ${getComparisonArrow((food.calories/food.totalVolume)*100, averages.calories)}</div></div>
+                            <div class="bg-gray-50 p-3 rounded-lg"><div class="text-sm text-gray-600">나트륨</div><div class="font-bold text-lg">${food.sodium} mg ${getComparisonArrow((food.sodium/food.totalVolume)*100, averages.sodium)}</div></div>
+                            <div class="bg-gray-50 p-3 rounded-lg"><div class="text-sm text-gray-600">탄수화물</div><div class="font-bold text-lg">${food.carbs} g ${getComparisonArrow((food.carbs/food.totalVolume)*100, averages.carbs)}</div></div>
+                            <div class="bg-gray-50 p-3 rounded-lg"><div class="text-sm text-gray-600">당류</div><div class="font-bold text-lg">${food.sugar} g ${getComparisonArrow((food.sugar/food.totalVolume)*100, averages.sugar)}</div></div>
+                            <div class="bg-gray-50 p-3 rounded-lg"><div class="text-sm text-gray-600">단백질</div><div class="font-bold text-lg">${food.protein} g ${getComparisonArrow((food.protein/food.totalVolume)*100, averages.protein)}</div></div>
+                        </div>
+                    </div>
+                    <div class="mb-8">
+                        <h3 class="text-lg font-bold mb-2">원재료명</h3><p class="text-gray-600 bg-gray-50 p-4 rounded-lg text-sm">${food.ingredients || '정보 없음'}</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-lg font-bold">맛 평가</h3>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold text-yellow-400 text-lg">${averageRating}</span>
+                                <div class="flex items-center text-yellow-400">${averageRatingStarsHTML}</div>
+                                <span class="text-sm text-gray-500">(${totalReviews.toLocaleString()})</span>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="mb-4 p-4 bg-white rounded-lg border">
+                                <div class="flex justify-between items-center">
+                                    <p class="font-semibold">별점을 선택해주세요.</p>
+                                    <span id="star-rating-value" class="font-bold text-lg text-gray-700">0.0</span>
+                                </div>
+                                <div id="star-rating-input" class="flex items-center text-3xl text-gray-300 my-2 star-rating">${'<span>☆</span>'.repeat(5)}</div>
+                                <textarea id="review-textarea" class="w-full mt-2 p-2 border rounded-lg" rows="3" placeholder="(선택) 평가를 입력해주세요."></textarea>
+                                <button id="submit-review-btn" class="w-full bg-blue-600 text-white py-2 mt-2 rounded-lg hover:bg-blue-700">등록</button>
+                            </div>
+                            <div id="reviews-container">${reviewsHTML.length > 0 ? reviewsHTML : '<p class="text-sm text-gray-500 text-center py-4">아직 등록된 평가가 없습니다.</p>'}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // --- 맛 평가 별점 인터랙션 로직 ---
+            const starRatingInput = container.querySelector('#star-rating-input');
+            const starRatingValue = container.querySelector('#star-rating-value');
+            const stars = starRatingInput.querySelectorAll('span');
+            let selectedRating = 0;
+
+            stars.forEach((star, index) => {
+                star.addEventListener('mouseover', () => {
+                    for (let i = 0; i <= index; i++) {
+                        stars[i].classList.remove('text-gray-300');
+                        stars[i].classList.add('text-yellow-400');
+                        stars[i].textContent = '★';
+                    }
+                    for (let i = index + 1; i < stars.length; i++) {
+                        stars[i].classList.remove('text-yellow-400');
+                        stars[i].classList.add('text-gray-300');
+                        stars[i].textContent = '☆';
+                    }
+                });
+
+                star.addEventListener('click', () => {
+                    selectedRating = index + 1;
+                    starRatingValue.textContent = selectedRating.toFixed(1);
+                    for (let i = 0; i < selectedRating; i++) { stars[i].classList.add('text-yellow-400'); stars[i].textContent = '★'; }
+                    for (let i = selectedRating; i < stars.length; i++) { stars[i].classList.remove('text-yellow-400'); stars[i].textContent = '☆'; }
+                });
+            });
+
+            starRatingInput.addEventListener('mouseout', () => {
+                for (let i = 0; i < selectedRating; i++) { stars[i].classList.add('text-yellow-400'); stars[i].textContent = '★'; }
+                for (let i = selectedRating; i < stars.length; i++) { stars[i].classList.remove('text-yellow-400'); stars[i].textContent = '☆'; }
+            });
+
+            // --- '등록' 버튼 이벤트 리스너 ---
+            const submitReviewBtn = container.querySelector('#submit-review-btn');
+            submitReviewBtn.addEventListener('click', async () => {
+                if (!auth.currentUser || auth.currentUser.isAnonymous) {
+                    submitReviewBtn.textContent = "로그인이 필요합니다!";
+                    setTimeout(() => { submitReviewBtn.textContent = "등록"; }, 2000);
+                    return;
+                }
+
+                const reviewText = container.querySelector('#review-textarea').value;
+                if (selectedRating === 0) {
+                    submitReviewBtn.textContent = "별점을 선택해주세요!";
+                    setTimeout(() => { submitReviewBtn.textContent = "등록"; }, 2000);
+                    return;
+                }
+
+                const newReview = {
+                    user: auth.currentUser.displayName || "이름 없는 사용자",
+                    rating: selectedRating,
+                    date: new Date().toLocaleDateString('ko-KR').slice(0, -1).replaceAll('. ', '.'),
+                    text: reviewText
+                };
+                
+                submitReviewBtn.textContent = "등록 중...";
+                submitReviewBtn.disabled = true;
+
+                try {
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    const foodDocRef = doc(db, `artifacts/${appId}/public/data/foods`, currentFood.id);
+                    await updateDoc(foodDocRef, {
+                        reviews: arrayUnion(newReview)
+                    });
+
+                    currentFood.reviews.unshift(newReview);
+                    renderFoodDetailPage(currentFood);
+
+                } catch (error) {
+                    console.error("리뷰 등록 실패:", error);
+                    const reviewBox = container.querySelector('.border');
+                    const errorMsg = document.createElement('p');
+                    errorMsg.textContent = "오류: 리뷰를 등록하지 못했습니다. 잠시 후 다시 시도해주세요.";
+                    errorMsg.className = "text-red-500 text-sm text-center mt-2";
+                    reviewBox.appendChild(errorMsg);
+                    setTimeout(() => { errorMsg.remove(); }, 3000);
+                } finally {
+                    submitReviewBtn.textContent = "등록";
+                    submitReviewBtn.disabled = false;
+                }
+            });
+        }
+
+        function renderSweetenerDetailPage(sweetener) {
+            const container = document.getElementById('sweetener-detail-page-container');
+            const containingFoods = foodsData.filter(food => food.sweeteners.includes(sweetener.name));
+            const groupedFoods = containingFoods.reduce((acc, food) => {
+                const category = food.category;
+                if (!acc[category]) acc[category] = [];
+                acc[category].push(food);
+                return acc;
+            }, {});
+
+            let containingFoodsHTML = '';
+            for (const category in groupedFoods) {
+                containingFoodsHTML += `<h4 class="font-semibold text-gray-800 mt-4 first:mt-0">${category}</h4>`;
+                const buttonsHTML = groupedFoods[category].map(food => `<button data-id="${food.id}" class="food-link bg-gray-200 text-gray-800 text-sm font-medium mr-2 mb-2 px-3 py-1 rounded-full hover:bg-gray-300 transition-colors">${food.name}</button>`).join('');
+                containingFoodsHTML += `<div class="flex flex-wrap mt-2">${buttonsHTML}</div>`;
+            }
+
+            container.innerHTML = `
+                <div class="bg-white rounded-xl shadow-lg p-4 sm:p-8">
+                    <div class="flex items-center mb-6">
+                        <button class="back-btn p-2 rounded-full hover:bg-gray-100"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+                        <h2 class="text-xl font-bold ml-4">대체당 상세 정보</h2>
+                    </div>
+                    <h1 class="text-4xl font-bold mb-8">${sweetener.name}</h1>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-gray-800">GI 지수 <span class="text-sm text-gray-500 font-normal">(낮을 수록 좋은 편)</span></h3>
+                            <p class="text-2xl font-bold mt-1">${sweetener.gi}</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-gray-800">가격대 <span class="text-sm text-gray-500 font-normal">(제조에 발생하는 단가 영향)</span></h3>
+                            <p class="text-2xl font-bold mt-1">${sweetener.priceRange}</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-gray-800">부정적 평가/이슈 <span class="text-sm text-gray-500 font-normal">(비공식적인 평가 있음, 섭취에 참고만)</span></h3>
+                            <div class="mt-2 text-sm space-y-2 text-gray-700">
+                                <p><span class="font-semibold">부정적 평가:</span> ${sweetener.negative_effects}</p>
+                                <p><span class="font-semibold">이슈:</span> ${sweetener.issues}</p>
+                                <p><span class="font-semibold">전문가 평가:</span> ${sweetener.expert_opinion}</p>
+                            </div>
+                        </div>
+                         <div>
+                            <h3 class="text-lg font-bold mb-2">함유된 대표 식품들</h3>
+                            <div id="containing-foods-container">${containingFoodsHTML.length > 0 ? containingFoodsHTML : '<p class="text-sm text-gray-500">관련 제품 정보가 없습니다.</p>'}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // --- 전역 상태 관리 ---
+        let currentFilters = {
+            searchTerm: '',
+            sortBy: null, // 'price', 'calories', 'sugar', 'carbs'
+            sortOrder: 'asc', // 'asc' or 'desc'
+            category: null,
+            sweetener: null
+        };
+
+        function applyFiltersAndRender() {
+            const activeTab = document.querySelector('#tab-container .tab-active').dataset.tab;
+
+            if (activeTab === 'foods') {
+                let filteredFoods = foodsData
+                    .filter(food => food.name.toLowerCase().includes(currentFilters.searchTerm.toLowerCase()))
+                    .filter(food => !currentFilters.category || food.category === currentFilters.category)
+                    .filter(food => !currentFilters.sweetener || food.sweeteners.includes(currentFilters.sweetener));
+                
+                if (currentFilters.sortBy) {
+                    filteredFoods.sort((a, b) => {
+                        let valA = a[currentFilters.sortBy];
+                        let valB = b[currentFilters.sortBy];
+                        if (currentFilters.sortOrder === 'asc') return valA - valB;
+                        else return valB - valA;
+                    });
+                }
+                
+                renderFoodCards(filteredFoods);
+            } else if (activeTab === 'sweeteners') {
+                let filteredSweeteners = sweetenersData.filter(s => 
+                    s.name.toLowerCase().includes(currentFilters.searchTerm.toLowerCase())
+                );
+                renderSweetenerCards(filteredSweeteners);
+            }
+        }
+        
+        // --- 인증 관련 함수 ---
+        const authContainer = document.getElementById('auth-container');
+
+        function updateAuthState(user) {
+            authContainer.innerHTML = ''; // Clear previous state
+            if (user && !user.isAnonymous) {
+                // User is signed in
+                const userName = document.createElement('span');
+                userName.className = "text-sm font-medium text-gray-700";
+                userName.textContent = `${user.displayName}님`;
+                
+                const logoutBtn = document.createElement('button');
+                logoutBtn.id = "logout-btn";
+                logoutBtn.className = "px-3 py-1.5 bg-gray-200 text-gray-800 rounded-md text-sm font-medium hover:bg-gray-300 transition-colors";
+                logoutBtn.textContent = '로그아웃';
+                
+                authContainer.appendChild(userName);
+                authContainer.appendChild(logoutBtn);
+            } else {
+                // User is signed out
+                const loginBtn = document.createElement('button');
+                loginBtn.id = "login-btn";
+                loginBtn.className = "px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors";
+                loginBtn.textContent = '로그인';
+                authContainer.appendChild(loginBtn);
+            }
+        }
+
+        async function handleAuth() {
+            const user = auth.currentUser;
+            if (user && !user.isAnonymous) {
+                await signOut(auth);
+            } else {
+                const provider = new GoogleAuthProvider();
+                try {
+                    await signInWithPopup(auth, provider);
+                } catch (error) {
+                    console.error("Google 로그인 오류:", error);
+                }
+            }
+        }
+
+
+        // --- 데이터 로딩 및 초기화 ---
+        async function main() {
+            try {
+                const firebaseConfig = {
+                   apiKey: "AIzaSyCnMu7NfSLwgJMzwfUD7xI8QpjYa_KjpU4",
+                   authDomain: "truth-of-zero.firebaseapp.com",
+                   projectId: "truth-of-zero",
+                   storageBucket: "truth-of-zero.firebasestorage.app",
+                   messagingSenderId: "941350938119",
+                   appId: "1:941350938119:web:c46561c9acb4b66831aca2",
+                   measurementId: "G-F64Q3SBVVP"
+                };
+                
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                
+                onAuthStateChanged(auth, (user) => {
+                    updateAuthState(user);
+                    if (!user) {
+                        // If logged out, ensure anonymous sign-in for read access
+                        signInAnonymously(auth).catch(err => console.error("익명 로그인 실패:", err));
+                    }
+                });
+                
+                // Firestore에서 데이터 가져오기
+                const foodsSnapshot = await getDocs(collection(db, `artifacts/${appId}/public/data/foods`));
+                foodsData = foodsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                const sweetenersSnapshot = await getDocs(collection(db, `artifacts/${appId}/public/data/sweeteners`));
+                sweetenersData = sweetenersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                if (foodsData.length === 0) {
+                    console.log("Firebase 'foods' 데이터가 비어있어 예비 데이터를 사용합니다.");
+                    foodsData = sampleFoods;
+                }
+                if (sweetenersData.length === 0) {
+                    console.log("Firebase 'sweeteners' 데이터가 비어있어 예비 데이터를 사용합니다.");
+                    sweetenersData = sampleSweeteners;
+                }
+                
+                applyFiltersAndRender();
+                showListPage();
+
+            } catch (error) { 
+                console.error("Firebase 데이터 로딩 중 오류 발생. 예비 데이터로 전환합니다:", error);
+                foodsData = sampleFoods;
+                sweetenersData = sampleSweeteners;
+                applyFiltersAndRender();
+                showListPage();
+            }
+        }
+
+        // --- UI 이벤트 리스너 ---
+        const tabContainer = document.getElementById('tab-container');
+        const foodsCardContainer = document.getElementById('foods-card-container');
+        const sweetenersCardContainer = document.getElementById('sweeteners-card-container');
+        const searchInput = document.getElementById('search-input');
+        const foodsFilterContainer = document.getElementById('foods-filter-container');
+        const filterModal = document.getElementById('filter-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalOptionsContainer = document.getElementById('modal-options-container');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+
+        authContainer.addEventListener('click', (event) => {
+            if (event.target.id === 'login-btn' || event.target.id === 'logout-btn') {
+                handleAuth();
+            }
+        });
+
+        tabContainer.addEventListener('click', (event) => {
+            const clickedTab = event.target.closest('button');
+            if (!clickedTab) return;
+            showListPage();
+            tabContainer.querySelectorAll('button').forEach(button => { button.classList.remove('tab-active'); button.classList.add('tab-inactive'); });
+            clickedTab.classList.add('tab-active');
+            clickedTab.classList.remove('tab-inactive');
+            
+            applyFiltersAndRender();
+
+            const tabName = clickedTab.dataset.tab;
+            document.querySelectorAll('#content-container > div').forEach(content => content.classList.add('hidden'));
+            document.getElementById(`${tabName}-content`).classList.remove('hidden');
+            
+            if (tabName === 'foods') {
+                searchInput.placeholder = '제로/로우 식품 이름으로 검색';
+                foodsFilterContainer.classList.remove('hidden');
+                foodsFilterContainer.classList.add('flex');
+            } else if (tabName === 'sweeteners') {
+                searchInput.placeholder = '대체당 이름으로 검색';
+                foodsFilterContainer.classList.add('hidden');
+                foodsFilterContainer.classList.remove('flex');
+            }
+        });
+        
+        searchInput.addEventListener('input', (event) => {
+            currentFilters.searchTerm = event.target.value;
+            applyFiltersAndRender();
+        });
+
+        foodsFilterContainer.querySelectorAll('.sort-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const sortBy = button.dataset.sortBy;
+                foodsFilterContainer.querySelectorAll('.sort-btn').forEach(btn => {
+                    if (btn !== button) {
+                        btn.classList.remove('filter-active');
+                        btn.innerHTML = `<span>${btn.textContent.replace(/[▲▼]/g, '').trim()}</span>`;
+                    }
+                });
+
+                if (currentFilters.sortBy === sortBy) {
+                    currentFilters.sortOrder = currentFilters.sortOrder === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentFilters.sortBy = sortBy;
+                    currentFilters.sortOrder = 'asc';
+                }
+                
+                button.classList.add('filter-active');
+                const arrow = currentFilters.sortOrder === 'asc' ? '▲' : '▼';
+                button.innerHTML = `<span>${button.textContent.replace(/[▲▼]/g, '').trim()}</span> <span class="text-xs ml-1">${arrow}</span>`;
+
+                applyFiltersAndRender();
+            });
+        });
+
+        document.getElementById('reset-filters-btn').addEventListener('click', () => {
+            currentFilters.sortBy = null;
+            currentFilters.sortOrder = 'asc';
+            currentFilters.category = null;
+            currentFilters.sweetener = null;
+            searchInput.value = '';
+            currentFilters.searchTerm = '';
+
+            foodsFilterContainer.querySelectorAll('.sort-btn, .filter-btn').forEach(btn => {
+                btn.classList.remove('filter-active');
+                if(btn.dataset.sortBy) btn.innerHTML = `<span>${btn.textContent.replace(/[▲▼]/g, '').trim()}</span>`;
+                if(btn.id === 'category-filter-btn') btn.querySelector('span').textContent = '종류';
+                if(btn.id === 'sweetener-filter-btn') btn.querySelector('span').textContent = '대체당';
+            });
+            
+            applyFiltersAndRender();
+        });
+        
+        foodsFilterContainer.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const filterType = button.dataset.filterType;
+                openModal(filterType);
+            });
+        });
+
+        function openModal(filterType) {
+            let options = [];
+            let title = '';
+            if (filterType === 'category') {
+                title = '종류 선택';
+                options = [...new Set(foodsData.map(f => f.category))];
+            } else if (filterType === 'sweetener') {
+                title = '대체당 선택';
+                options = [...new Set(sweetenersData.map(s => s.name))];
+            }
+            
+            modalTitle.textContent = title;
+            modalOptionsContainer.innerHTML = '';
+            
+            options.forEach(option => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = "w-full text-left p-2 rounded-md hover:bg-gray-100";
+                optionBtn.textContent = option;
+                optionBtn.onclick = () => {
+                    currentFilters[filterType] = option;
+                    const filterBtn = document.getElementById(`${filterType}-filter-btn`);
+                    filterBtn.querySelector('span').textContent = option;
+                    filterBtn.classList.add('filter-active');
+                    closeModal();
+                    applyFiltersAndRender();
+                };
+                modalOptionsContainer.appendChild(optionBtn);
+            });
+            
+            filterModal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            filterModal.classList.add('hidden');
+        }
+
+        closeModalBtn.addEventListener('click', closeModal);
+        
+        foodsCardContainer.addEventListener('click', (event) => {
+            const card = event.target.closest('[data-id]');
+            if (card) { showFoodDetailPage(card.dataset.id); }
+        });
+
+        sweetenersCardContainer.addEventListener('click', (event) => {
+            const card = event.target.closest('[data-id]');
+            if (card) { showSweetenerDetailPage(card.dataset.id); }
+        });
+
+        document.body.addEventListener('click', (event) => {
+            if (event.target.closest('.back-btn')) { navigateBack(); }
+            if (event.target.closest('.sweetener-link')) { showSweetenerDetailPage(event.target.closest('.sweetener-link').dataset.sweetenerId); }
+            if (event.target.closest('#containing-foods-container .food-link')) { showFoodDetailPage(event.target.closest('.food-link').dataset.id); }
+        });
+
+        window.onload = main;
+    </script>
+</body>
+</html>
+
